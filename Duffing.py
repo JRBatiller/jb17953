@@ -22,10 +22,12 @@ and u2=u''
 import numpy as np
 import scipy as sp
 import time
+import math
 
 import matplotlib
 import matplotlib.pyplot as plt
 from scipy.integrate import odeint
+from scipy.integrate import ode
 from scipy import stats
 
 
@@ -33,8 +35,9 @@ from scipy import stats
 
 
 
-def du_dt(u,t):
+def du_dt(u0,t, gamma, epsilon):
     #takes a vector,returns a vector
+    u=u0
     du=[u[1], gamma*np.sin(omega*t)-2*epsilon*u[1]-u[0]-u[0]**3]
     return du    
     
@@ -44,14 +47,16 @@ if __name__ == "__main__":
     #Do i just set any value of omega
     omega=1.0
     #Do I just set initial conditions
-    U0=np.array([0,0])
-    ts=np.linspace(0,1000*np.pi,200)
-    Us=odeint(du_dt,U0,ts)
+    U0=np.array([0.2, 0.5])
+    ts=np.linspace(0,500*np.pi, 100000)
+    #ts=np.array([np.pi*z/1000 for z in range(1000000)])
+    
+    Us=odeint(du_dt,U0,ts, args=(gamma,epsilon))
     us=Us[:,0]    
     dus=Us[:,1]
 
 
-    fig1=plt.figure()
+    fig1=plt.figure(figsize=(10,5))
     ax1=fig1.add_subplot(1,1,1)
     ax1.set_xlabel("t")
     ax1.set_ylabel("u")
@@ -73,3 +78,20 @@ if __name__ == "__main__":
     ax1.plot(ts,us)
     ax1.plot(ts,dus)
     fig1.savefig('Duffing Plot.svg')
+    
+    fig2=plt.figure(figsize=(10,5))
+    ax2=fig2.add_subplot(1,1,1)
+    ax2.plot(us,dus)
+    ax2.set_xlabel("Position")
+    ax2.set_ylabel("Velocity")
+    
+ 
+    #Isolate a period T
+    periods=[]
+    for index in range(len(Us)):
+        A=Us[index]-Us[75000]
+        if(np.sqrt(A[0]**2+A[1]**2)<=0.001):
+            periods.append(index)
+    
+    print(periods)
+    
