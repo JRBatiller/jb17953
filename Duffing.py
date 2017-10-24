@@ -34,7 +34,7 @@ from scipy import stats
 #def dudt(u,t): this is a bad name
 
 
-
+#used to have seperate dudt functions combined into one
 def du_dt(u0,t, gamma, epsilon):
     #takes a vector,returns a vector
     u=u0
@@ -47,8 +47,11 @@ if __name__ == "__main__":
     #Do i just set any value of omega
     omega=1.0
     #Do I just set initial conditions
-    U0=np.array([0.2, 0.5])
-    ts=np.linspace(0,500*np.pi, 100000)
+    U0=np.array([0.5, 0]) # max amplitude 0 velocity seem like good starting points
+    
+    ts=np.linspace(0, 1000, 1000000)
+    # the time spacings have to be very small too. I think the sin screws things up a lot
+    #changed time scale to not depend on pi its easier this way
     #ts=np.array([np.pi*z/1000 for z in range(1000000)])
     
     Us=odeint(du_dt,U0,ts, args=(gamma,epsilon))
@@ -61,7 +64,7 @@ if __name__ == "__main__":
     ax1.set_xlabel("t")
     ax1.set_ylabel("u")
     #plt.title("Duffing")
-    ax1.set_xticks([np.pi*100*t for t in range(20)])
+    ax1.set_xticks([np.pi*100*t for t in range(200)])
     ax1.set_xticklabels([
         r'$0$',
         r'$100\pi$',
@@ -84,14 +87,30 @@ if __name__ == "__main__":
     ax2.plot(us,dus)
     ax2.set_xlabel("Position")
     ax2.set_ylabel("Velocity")
-    
+    fig2.savefig('Phase Plot.svg')
  
     #Isolate a period T
     periods=[]
     for index in range(len(Us)):
-        A=Us[index]-Us[75000]
-        if(np.sqrt(A[0]**2+A[1]**2)<=0.001):
+        A=Us[index]-Us[750000]
+        if(np.sqrt(np.dot(A,A))/2<=0.00005):
             periods.append(index)
     
     print(periods)
+    #it shows to have a period of around 400
     
+    for tm in periods:
+        print(Us[tm])
+    last=0
+    for tm in periods[:]:
+        print(ts[tm]-last)
+        last=ts[tm]
+    #bad but okay way to check period
+    #it does cahnge to 2pi/omega when I chagned omega YES IT WORKS
+    
+    fig3=plt.figure(figsize=(10,5))
+    ax3=fig3.add_subplot(1,1,1)
+    ax3.plot(ts[742000:758000],us[742000:758000])
+    ax3.plot(ts[742000:758000],dus[742000:758000])
+    ax3.set_xlabel("t")
+    ax3.set_ylabel("u")    
