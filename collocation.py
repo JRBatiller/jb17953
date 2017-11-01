@@ -36,6 +36,17 @@ import matplotlib.pyplot as plt
 from scipy.integrate import odeint
 
 import week5_chebtests
+import week5_odetests
+
+def diff(f, u,t):
+    #this shall be our function to zero
+    
+    
+    func=f(u,t,[]) # this is the last element
+    diff=u-func
+    #df=np.array([f[1],du_dt(uinitial,t,gamma,epsilon)[1]-du_dt(ufinal,t+T,gamma,epsilon)[1]])
+    #Ans=np.array([f, df])
+    return diff
 
 def cheb(N):
     if(not isinstance(N,int)):
@@ -65,10 +76,51 @@ def cheb(N):
             else:
                 D[i][j]=(c[i]/c[j])*((-1)**(i+j))/(x[i]-x[j])
     return D
+    #improve on this later
+    
+def cheb2(N):
+    #lets try doing the matlab way
+    if(not isinstance(N,int)):
+        raise ValueError("N must be a positive integer")
+        return 0
+    if(N<=0):
+        raise ValueError("N must be a positive integer")
+        return 0
+    x=np.array([np.cos(np.pi*i/N) for i in range (N+1)])
+    c=np.ones(N+1)
+    c[0]=2
+    c[N]=2
+    d=np.array([(-1)**n for n in range(N+1)])
+    c=c*d
+    X=tile(x,(N+1,1)).transpose()
+    dX=X-X.transpose()
+    #D  = (c*(1./c)')./(dX+(eye(N+1)));
+    D=c.reshape(N+1,1)*(1/c)/(dX+np.identity(N+1))
+    D=D-np.diag(sum(D,1))
+    return D
+    #D  = D - diag(sum(D'));
+    
+"""
+2. Use the Chebyshev differentiation matrix to differentiate known functions
+over some interval (e.g., sin(x) for −1 ≤ x ≤ 1).
+• Write a number of tests that your code should satisfy and ensure that
+your code does satisfy them.
+"""
+def collocation(ode, n, x0, pars):
+    t=np.array([np.cos(np.pi*i/n) for i in range (n+1)])
+    f=ode(x0,t,pars)
+    D=cheb(n)
+    Dx=np.sum(D*x0,1)
+    x, infodict, ier, mesg=sp.optimize.fsolve(diff, Dx, args=(f, t), full_output=1 )
+    
+    return x
 
 
 if __name__ == "__main__":
-    print(cheb(3))
-    
+    cheb(6) 
     runtests_cheb(cheb)
+    runtests_cheb(cheb2)
+    runtests_ode(collocation)
     #PASSED!!!!
+    
+    
