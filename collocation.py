@@ -38,15 +38,26 @@ from scipy.integrate import odeint
 import week5_chebtests
 import week5_odetests
 
-def diff(f, u,t):
+def diff(x, ode, t):
     #this shall be our function to zero
+    x[-1]=x[0]
+    D=cheb(len(t)-1)
+    Dx=np.sum(D*x,1)
     
     
-    func=f(u,t,[]) # this is the last element
-    diff=u-func
+    func=ode(x,t,[])
+    
+    diff=Dx-func
+    
     #df=np.array([f[1],du_dt(uinitial,t,gamma,epsilon)[1]-du_dt(ufinal,t+T,gamma,epsilon)[1]])
     #Ans=np.array([f, df])
     return diff
+
+def diffx(x):
+    diffx=x[0]-x[-1]
+    return diffx
+
+
 
 def cheb(N):
     if(not isinstance(N,int)):
@@ -108,11 +119,11 @@ your code does satisfy them.
 """
 def collocation(ode, n, x0, pars):
     t=np.array([np.cos(np.pi*i/n) for i in range (n+1)])
-    f=ode(x0,t,pars)
-    D=cheb(n)
-    Dx=np.sum(D*x0,1)
-    x, infodict, ier, mesg=sp.optimize.fsolve(diff, Dx, args=(f, t), full_output=1 )
-    
+    #f=ode(x0,t,pars)
+    #D=cheb(n)
+    #Dx=np.sum(D*x0,1)
+    x, infodict, ier, mesg=sp.optimize.fsolve(diff, x0, args=(ode, t), full_output=1 )
+    x[0]=x[-1]
     return x
 
 
