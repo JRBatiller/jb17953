@@ -35,37 +35,22 @@ from scipy import stats
 
 
 #used to have seperate dudt functions combined into one
-def du_dt(u0,t, gamma, epsilon):
+def duffy(u0,t, pars):
     #takes a vector,returns a vector
+    gamma, epsilon=pars
     u=u0
     du=[u[1], gamma*np.sin(omega*t)-2*epsilon*u[1]-u[0]-u[0]**3]
     return du    
 
-def diff(u,t,T):
+def start_end_diff(u,t,T, pars):
     #this shall be our function to zero
     uinitial=u
-    us=odeint(du_dt,uinitial,[t,t+T], args=(gamma,epsilon))
+    us=odeint(duffy,uinitial,[t,t+T], args=(pars,))
     ufinal=us[-1] # this is the last element
     f=uinitial-ufinal
     #df=np.array([f[1],du_dt(uinitial,t,gamma,epsilon)[1]-du_dt(ufinal,t+T,gamma,epsilon)[1]])
     #Ans=np.array([f, df])
     return f
-
-"""
-def df_dt(u,t,T):
-    #derivative of f
-    uinitial=u
-    ts=np.linspace(0, t+T, int((t+T)*1000))
-    us=odeint(du_dt,U0,ts, args=(gamma,epsilon))
-    ufinal=us[-1]
-    pass
-    #lets integrate this into the previous one instead
-"""
-
-def Newton_step(f,u, t, T):
-    unext=u-f(u, t, T)[0]/f(u, t, T)[1]
-    return unext
-    
 
 if __name__ == "__main__":
     epsilon=0.05
@@ -75,9 +60,9 @@ if __name__ == "__main__":
     #Do I just set initial conditions
     U0=np.array([0.5, 0]) # max amplitude 0 velocity seem like good starting points
     t0=0
-    
+    pars= [gamma, epsilon]
     #WELL SHIT
-    Us=odeint(du_dt,U0,[0,1000], args=(gamma,epsilon))
+    Us=odeint(duffy,U0,[0,1000], args=(pars,))
     
     """
     ts=np.linspace(0, 1000, 1000000)
@@ -149,45 +134,18 @@ if __name__ == "__main__":
     T=2*np.pi/omega
     # ok it works??? print(f(U0,t0,T))
     
-    """
-    [120]np.sin(np.pi)
-    Out[120]: 1.2246467991473532e-16
-    NOOOOOOOOOOOOOOOOOOOOOOOOOOO
-    """
-    
-    """Newton Time
-    U0=np.array([0.5,0.5])
-    u=U0
-    difference=diff(u,t0,T)[0]
-    difference=difference.dot(difference)/2
-    runs=0
-    while difference>0.0001:
-        if(np.isfinite(np.sum(u))):
-            runs+=1
-            u=Newton_step(diff, u, t0, T)
-            difference=diff(u,t0,T)[0]
-            difference=difference.dot(difference)/2
-            if(runs%100==0):
-                print("I am running, difference is now {}".format(difference))
-            
-        else:
-            print("Bad initial values try again")
-            print("Ran for {} times".format(runs))
-            break
-    """
-    #of course python hasa root solver
-    
     u=U0
     u=[1,-1]
     t=t0
-    x, infodict, ier, mesg=sp.optimize.fsolve(diff, u, args=(t, T), full_output=1 )
+    x, infodict, ier, mesg=sp.optimize.fsolve(start_end_diff, u, args=(t, T, pars), full_output=1 )
     
     if(ier==1):
         print(mesg)
         print("The roots are {}".format(x))
     else:
         print(mesg)
-        
+    
+    """    
     #CHECK ROOT 
     
     ts=np.linspace(0, t+T, 100)
@@ -222,3 +180,4 @@ if __name__ == "__main__":
     ax2.set_xlabel("Position")
     ax2.set_ylabel("Velocity")
     fig2.savefig('Root Phase Plot.svg')
+    """
