@@ -42,35 +42,19 @@ def duffy(u0,t, pars):
     du=[u[1], gamma*np.sin(omega*t)-2*epsilon*u[1]-u[0]-u[0]**3]
     return du    
 
-def start_end_diff(u,t,T, pars):
+def start_end_diff(u,*data):
     #this shall be our function to zero
+    t, T, f, pars =data
     uinitial=u
-    us=odeint(duffy,uinitial,[t,t+T], args=(pars,))
+    us=odeint(f,uinitial,[t,t+T], args=(pars,))
     ufinal=us[-1] # this is the last element
     f=uinitial-ufinal
     #df=np.array([f[1],du_dt(uinitial,t,gamma,epsilon)[1]-du_dt(ufinal,t+T,gamma,epsilon)[1]])
     #Ans=np.array([f, df])
     return f
 
-if __name__ == "__main__":
-    epsilon=0.05
-    gamma=0.2
-    #Do i just set any value of omega
-    omega=1.0
-    #Do I just set initial conditions
-    U0=np.array([0.5, 0]) # max amplitude 0 velocity seem like good starting points
-    t0=0
-    pars= [gamma, epsilon]
-    #WELL SHIT
-    Us=odeint(duffy,U0,[0,1000], args=(pars,))
-    
-    """
-    ts=np.linspace(0, 1000, 1000000)
-    # the time spacings have to be very small too. I think the sin screws things up a lot
-    #changed time scale to not depend on pi its easier this way
-    #ts=np.array([np.pi*z/1000 for z in range(1000000)])
-    
-    Us=odeint(du_dt,U0,ts, args=(gamma,epsilon))
+def plot_stuff(f, u, t, pars):
+    Us=odeint(f,u,t, args=(pars,))
     us=Us[:,0]    
     dus=Us[:,1]
 
@@ -80,6 +64,7 @@ if __name__ == "__main__":
     ax1.set_xlabel("t")
     ax1.set_ylabel("u")
     #plt.title("Duffing")
+    """
     ax1.set_xticks([np.pi*100*t for t in range(200)])
     ax1.set_xticklabels([
         r'$0$',
@@ -94,17 +79,62 @@ if __name__ == "__main__":
         r'$900\pi$',
         r'$1000\pi$',
     ], fontsize='medium')
+    """
     ax1.plot(ts,us)
     ax1.plot(ts,dus)
-    fig1.savefig('Duffing Plot.svg')
+    #fig1.savefig('Duffing Plot.svg')
     
     fig2=plt.figure(figsize=(10,5))
     ax2=fig2.add_subplot(1,1,1)
     ax2.plot(us,dus)
     ax2.set_xlabel("Position")
     ax2.set_ylabel("Velocity")
-    fig2.savefig('Phase Plot.svg')
+    #fig2.savefig('Phase Plot.svg')
  
+    
+
+if __name__ == "__main__":
+    epsilon=0.05
+    gamma=0.2
+    #Do i just set any value of omega
+    omega=1.0
+    #Do I just set initial conditions
+    U0=np.array([0.5, 0]) # max amplitude 0 velocity seem like good starting points
+    t0=0
+    pars= [gamma, epsilon]
+    #WELL SHIT
+    Us=odeint(duffy,U0,[0,1000], args=(pars,))
+    
+    
+    ts=np.linspace(0, 1000, 1000000)
+    # the time spacings have to be very small too. I think the sin screws things up a lot
+    #changed time scale to not depend on pi its easier this way
+    #ts=np.array([np.pi*z/1000 for z in range(1000000)])
+    plot_stuff(duffy, U0, ts, pars)
+   
+    
+    T=2*np.pi/omega
+    
+    
+    u=U0
+    u=[1,-1]
+    t=t0
+    
+    data = t, T, duffy, pars
+    x, infodict, ier, mesg=sp.optimize.fsolve(start_end_diff, u, args=data, full_output=1 )
+    
+    if(ier==1):
+        print(mesg)
+        print("The roots are {}".format(x))
+    else:
+        print(mesg)
+    
+    ts=np.linspace(t, T, 1000000)
+    
+    plot_stuff(duffy,x,ts,pars)
+    
+    """   
+    
     #Isolate a period T
     periods=[]
     for index in range(len(Us)):
@@ -129,55 +159,4 @@ if __name__ == "__main__":
     ax3.plot(ts[742000:758000],dus[742000:758000])
     ax3.set_xlabel("t")
     ax3.set_ylabel("u")    
-    """
-    #okay most of the code is now commented
-    T=2*np.pi/omega
-    # ok it works??? print(f(U0,t0,T))
-    
-    u=U0
-    u=[1,-1]
-    t=t0
-    x, infodict, ier, mesg=sp.optimize.fsolve(start_end_diff, u, args=(t, T, pars), full_output=1 )
-    
-    if(ier==1):
-        print(mesg)
-        print("The roots are {}".format(x))
-    else:
-        print(mesg)
-    
-    """    
-    #CHECK ROOT 
-    
-    ts=np.linspace(0, t+T, 100)
-    Us=odeint(du_dt,x,ts, args=(gamma,epsilon))
-    us=Us[:,0]    
-    dus=Us[:,1]
-    
-    fig1=plt.figure(figsize=(10,5))
-    ax1=fig1.add_subplot(1,1,1)
-    ax1.set_xlabel("t")
-    ax1.set_ylabel("u")
-    #plt.title("Duffing")
-    ax1.set_xticks([np.pi*t/4 for t in range(9)])
-    ax1.set_xticklabels([
-        r'$0$',
-        r'$\pi/4$',
-        r'$\pi/2$',
-        r'$3\pi/4$',
-        r'$\pi$',
-        r'$5\pi/4$',
-        r'$3\pi/2$',
-        r'$7\pi/4$',
-        r'$2\pi$',
-    ], fontsize='medium')
-    ax1.plot(ts,us)
-    ax1.plot(ts,dus)
-    fig1.savefig('Duffing Root Plot.svg')
-    
-    fig2=plt.figure(figsize=(10,5))
-    ax2=fig2.add_subplot(1,1,1)
-    ax2.plot(us,dus)
-    ax2.set_xlabel("Position")
-    ax2.set_ylabel("Velocity")
-    fig2.savefig('Root Phase Plot.svg')
     """
