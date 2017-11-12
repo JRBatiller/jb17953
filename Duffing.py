@@ -5,26 +5,12 @@ Created on Wed Oct 18 11:03:47 2017
 @author: Joby
 """
 
-
-"""
-we will let u1=u'
-and u2=u''
-"""
-
 import numpy as np
 import scipy as sp
-import time
-import math
 
 import matplotlib
 import matplotlib.pyplot as plt
 from scipy.integrate import odeint
-from scipy.integrate import ode
-from scipy import stats
-
-
-
-
 
 """
 • The mass-spring-damper equation x¨ + 2ξx˙ + kx = sin(πt) (note that the
@@ -57,11 +43,15 @@ def duffy(u0,t, pars):
     du=[u[1], gamma*np.sin(omega*t)-2*epsilon*u[1]-u[0]-u[0]**3]
     return du    
 
+def sin1(x, t, par):
+      
+    return np.sin(np.pi*t) - x
+
 def start_end_diff(u,*args):
     #this shall be our function to zero
     T, f, pars =args
     uinitial=u
-    us=odeint(f,uinitial,[0,T], args=(pars,))
+    us=odeint(f,uinitial,T, args=(pars,))
     ufinal=us[-1] # this is the last element
     f=uinitial-ufinal
     #df=np.array([f[1],du_dt(uinitial,t,gamma,epsilon)[1]-du_dt(ufinal,t+T,gamma,epsilon)[1]])
@@ -78,22 +68,7 @@ def plot_stuff(f, u, t, pars):
     ax1.set_xlabel("t")
     ax1.set_ylabel("u")
     #plt.title("Duffing")
-    """
-    ax1.set_xticks([np.pi*100*t for t in range(200)])
-    ax1.set_xticklabels([
-        r'$0$',
-        r'$100\pi$',
-        r'$200\pi$',
-        r'$300\pi$',
-        r'$400\pi$',
-        r'$500\pi$',
-        r'$600\pi$',
-        r'$700\pi$',
-        r'$800\pi$',
-        r'$900\pi$',
-        r'$1000\pi$',
-    ], fontsize='medium')
-    """
+   
     ax1.plot(ts,us)
     ax1.plot(ts,dus)
     #fig1.savefig('Duffing Plot.svg')
@@ -107,7 +82,7 @@ def plot_stuff(f, u, t, pars):
  
 def shooting(ode, x0, T, pars):
     data = T, ode, pars
-    x, infodict, ier, mesg=sp.optimize.fsolve(start_end_diff, u, args=data, full_output=1 )
+    x, infodict, ier, mesg=sp.optimize.fsolve(start_end_diff, x0, args=data, full_output=1 )
     if(ier==1):
         print(mesg)
         print("The roots of {} are {}".format(ode, x))
@@ -138,29 +113,24 @@ if __name__ == "__main__":
     u=U0
    
     t=t0
-    """
-    data = t, T, duffy, pars
-    x, infodict, ier, mesg=sp.optimize.fsolve(start_end_diff, u, args=data, full_output=1 )
-    
-    if(ier==1):
-        print(mesg)
-        print("The roots are {}".format(x))
-    else:
-        print(mesg)
-    """
-    x=shooting(duffy,u,T,pars)
-    
+    time=[t,T]
+    x=shooting(duffy,u,time,pars)
     ts=np.linspace(t, T, 1000)
-    
     plot_stuff(duffy,x,ts,pars)
     
-    
-    
-    x=shooting(mass_spring,u,T,pars)
-    
+    x=shooting(mass_spring,u,time,pars)
     ts=np.linspace(t, T, 1000)
-    
     plot_stuff(mass_spring,x,ts,pars)
+    
+    n=20
+    T=1
+    t=-1
+    time=[t,T]
+    pars= [epsilon, 1, np.pi]
+    z=shooting(mass_spring, u, time, pars)
+    ts=np.cos(np.pi*np.arange(0, n+1)/n)
+    plot_stuff(mass_spring,z,ts,pars)
+    
     
     
     """   

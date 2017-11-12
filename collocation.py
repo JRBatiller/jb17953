@@ -38,25 +38,36 @@ from scipy.integrate import odeint
 import week5_chebtests
 import week5_odetests
 
-def diff(x, ode, t):
+def deflatten(x,t):
+    #this if statement might not even be needed
+    if not len(x)==len(t):
+        #this means the array needs to be reshaped
+        columns = int(len(x)/len(t)) #this hsouolod be an integer!!!
+        x=reshape(x,(len(t),columns))
+        return x
+    else:
+        return x
+
+def diff(x, *args):
     #this shall be our function to zero
-    x[-1]=x[0]
+    
+    ode, t, pars = args
+    x=deflatten(x,t)
+    x[-1]=x[0]    
     D=cheb(len(t)-1)
-    Dx=np.sum(D*x,1)
+    Dx=np.dot(D,x)
     
-    
-    func=ode(x,t,[])
-    
+    x=x.transpose()
+    func=np.array(ode(x,t,pars))
+    func=func.transpose()
+    #print(shape(func))
     diff=Dx-func
-    
+    diff=diff.flatten()
+    #print("this is diff")
+    #print(diff)
     #df=np.array([f[1],du_dt(uinitial,t,gamma,epsilon)[1]-du_dt(ufinal,t+T,gamma,epsilon)[1]])
     #Ans=np.array([f, df])
     return diff
-
-def diffx(x):
-    diffx=x[0]-x[-1]
-    return diffx
-
 
 
 def cheb(N):
@@ -122,9 +133,22 @@ def collocation(ode, n, x0, pars):
     #f=ode(x0,t,pars)
     #D=cheb(n)
     #Dx=np.sum(D*x0,1)
-    x, infodict, ier, mesg=sp.optimize.fsolve(diff, x0, args=(ode, t), full_output=1 )
-    x[0]=x[-1]
+    data = ode, t, pars
+    x, infodict, ier, mesg=sp.optimize.fsolve(diff, x0, args=data, full_output=1 )
+    #FSOLVE FLATTENS ARRAYS!!!! THE MOTHERFFFFFFFFFF
+    #x[0]=x[-1]
+    x=deflatten(x, t)
+    #print("this is collocation")
+    #print(x)
     return x
+
+"""
+Use the Chebyshev differentiation matrix in conjunction with a root finder
+to solve arbitrary periodic boundary value problems. Ensure that your
+code passes the tests provided.
+• In addition to the tests provided, check your code against the shooting
+code you wrote last week.
+"""
 
 
 if __name__ == "__main__":
@@ -134,4 +158,13 @@ if __name__ == "__main__":
     runtests_ode(collocation)
     #PASSED!!!!
     
+"""
+Extensions
+How might your code be extended to other types of discretisation? Instead
+of using Chebyshev polynomials, other types of polynomials and basis
+functions can be used (e.g., Hermite polynomials or Fourier series). See
+[http://appliedmaths.sun.ac.za/~weideman/research/differ.html] and “A
+MATLAB differentiation matrix suite” by Weideman and Reddy, ACM
+Transactions on Mathematical Software, 2000.
+"""
     
