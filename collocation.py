@@ -43,7 +43,7 @@ def deflatten(x,t):
     if not len(x)==len(t):
         #this means the array needs to be reshaped
         columns = int(len(x)/len(t)) #this hsouolod be an integer!!!
-        x=reshape(x,(len(t),columns))
+        x=np.reshape(x,(len(t),columns))
         return x
     else:
         return x
@@ -114,7 +114,7 @@ def cheb2(N):
     c[N]=2
     d=np.array([(-1)**n for n in range(N+1)])
     c=c*d
-    X=tile(x,(N+1,1)).transpose()
+    X=np.tile(x,(N+1,1)).transpose()
     dX=X-X.transpose()
     #D  = (c*(1./c)')./(dX+(eye(N+1)));
     D=c.reshape(N+1,1)*(1/c)/(dX+np.identity(N+1))
@@ -153,9 +153,9 @@ code you wrote last week.
 
 if __name__ == "__main__":
     cheb(6) 
-    runtests_cheb(cheb)
-    runtests_cheb(cheb2)
-    runtests_ode(collocation)
+    week5_chebtests.runtests_cheb(cheb)
+    week5_chebtests.runtests_cheb(cheb2)
+    week5_odetests.runtests_ode(collocation)
     #PASSED!!!!
     
 """

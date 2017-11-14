@@ -1,5 +1,6 @@
 # Tests on the collocation method routines
-
+import numpy as np
+from scipy.integrate import odeint
 from numpy import *
 import Duffing
 

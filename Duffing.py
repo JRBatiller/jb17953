@@ -47,9 +47,8 @@ def sin1(x, t, par):
       
     return np.sin(np.pi*t) - x
 
-def start_end_diff(u,*args):
+def start_end_diff(u, T, f, pars, *args):
     #this shall be our function to zero
-    T, f, pars =args
     uinitial=u
     us=odeint(f,uinitial,T, args=(pars,))
     ufinal=us[-1] # this is the last element
@@ -85,11 +84,11 @@ def shooting(ode, x0, T, pars):
     x, infodict, ier, mesg=sp.optimize.fsolve(start_end_diff, x0, args=data, full_output=1 )
     if(ier==1):
         print(mesg)
-        print("The roots of {} are {}".format(ode, x))
+        print("The roots are {}".format(x))
         return x
     else:
         print(mesg)
-        return nan
+        return float('Nan')
 
 if __name__ == "__main__":
     epsilon=0.05
@@ -113,7 +112,7 @@ if __name__ == "__main__":
     u=U0
    
     t=t0
-    time=[t,T]
+    time=[t,t+T]
     x=shooting(duffy,u,time,pars)
     ts=np.linspace(t, T, 1000)
     plot_stuff(duffy,x,ts,pars)
@@ -123,9 +122,9 @@ if __name__ == "__main__":
     plot_stuff(mass_spring,x,ts,pars)
     
     n=20
-    T=1
+    T=2
     t=-1
-    time=[t,T]
+    time=[t,t+T]
     pars= [epsilon, 1, np.pi]
     z=shooting(mass_spring, u, time, pars)
     ts=np.cos(np.pi*np.arange(0, n+1)/n)
