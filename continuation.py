@@ -209,8 +209,22 @@ if __name__ == "__main__":
     #NOTE! This produces a matrix in the form [k,x]
     ks=results[:,0]
     xs=results[:,1]
-    plt.plot(ks,xs)
+    #plt.plot(ks,xs)
     #FUCK YEAH IT WORKS
+
+    fig1=plt.figure(figsize=(10,5))
+    ax1=fig1.add_subplot(1,1,1)
+    ax1.set_xlabel("k")
+    ax1.set_ylabel("||x||")
+    #plt.title("Duffing")
+   
+    ax1.plot(ks,xs)
+    fig1.savefig('simple cubic x vs k.svg')
+    
+        
+
+    
+    """
     k=0.1
     end=20
     par0=[k, 0.05, 1]
@@ -219,5 +233,5 @@ if __name__ == "__main__":
     par0.append(timepar) #lets pack period in here cause lazy
     results = continuation(mass_spring,x0,par0,vary_par,step_size,100,shooting,fsolve)
     plt.plot(*results.transpose())
-
+    """
 
