@@ -273,17 +273,24 @@ if __name__ == "__main__":
     #plt.title("Duffing")
    
     ax1.scatter(ks,xs)
-    fig1.savefig('Mass Spring.svg')
+    #fig1.savefig('Mass Spring.svg')
     
     
     
     
     
-    par0=[k, 0.05, 0.5, 1]
+    par0=[k, 0.05, 0.8, 1]
     par0.append(end)    
+    step_size=0.001
     results2 = continuation(duffy,x0,par0,vary_par,step_size,1000000,disc,fsolve)
     
     ks=results2[:,0]
     xs=results2[:,2]
     
-    #plt.scatter(ks,xs)
+    fig2=plt.figure(figsize=(6,3))
+    ax2=fig2.add_subplot(1,1,1)
+    ax2.set_xlabel("lambda")
+    ax2.set_ylabel("||x||")
+    #plt.title("Duffing")
+    ax2.scatter(ks,xs)
+    fig2.savefig('Duffy parameter.svg')
