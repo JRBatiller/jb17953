@@ -1,26 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Dec  4 21:28:07 2017
-
-@author: Joby
-"""
-
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Nov 30 21:12:56 2017
-
-@author: Joby
-"""
-
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Nov 22 18:27:28 2017
-
-@author: Joby
-"""
-
-# -*- coding: utf-8 -*-
-"""
 Created on Wed Nov 22 11:03:57 2017
 
 @author: Joby
