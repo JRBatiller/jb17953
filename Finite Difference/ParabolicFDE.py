@@ -11,6 +11,7 @@ import scipy as sp
 from numpy import pi
 from scipy.sparse import spdiags
 
+
 """
 Modify these as needed
 """
@@ -182,8 +183,39 @@ def is_identity(A):
     B=np.identity(A.shape[0])
     ans=(A.toarray()==B) #can't get not equals to work properly
     return ans.all()
-      
 
+def get_errorx(K,L,T,xinit,mx,mt,bdry, method,neumann=0,F=heat_source):
+    elist=[]
+    u1=fde_parabolic(K, L,T,xinit, mx,mt,bdry, method, neumann, F)
+    for a in range(8):
+        u2=fde_parabolic(K, L,T,xinit, 2*mx,mt,bdry, method, neumann, F)
+        u2half=u2[::2]
+        error=abs(u1-u2half)**2
+        error=np.sqrt(sum(error))
+        elist.append(error)
+        u1=u2
+        mx=mx*2
+    return elist
+
+
+
+def get_errors(K,L,T,xinit,mx,mt,bdry, method,steps, neumann=0,F=heat_source):
+    elist=[]
+    u1=fde_parabolic(K, L,T,xinit, mx,mt,bdry, method, neumann, F)
+    for a in range(steps):
+        u2=fde_parabolic(K, L,T,xinit, 2*mx,2*mt,bdry, method, neumann, F)
+        u2half=u2[::2]
+        error=abs(u1-u2half)**2
+        error=np.sqrt(sum(error))
+        if np.isfinite(error):
+            elist.append(error)
+        else:
+            elist.append(0)
+        u1=u2
+        mt=mt*2
+        mx=mx*2
+    return elist
+    
 if __name__ == "__main__":
     #initialize values here
     kappa = 1   # diffusion constant
@@ -193,12 +225,45 @@ if __name__ == "__main__":
     mt = 1000   # number of gridpoints in time
     
        
-    u=fde_parabolic(kappa, L,T,u_I, mx,mt,zero_bound, crank_nich, neumann=1)
+    u=fde_parabolic(kappa, L,T,u_I, mx,mt,zero_bound, crank_nich, neumann=0)
     
     #print(u)
     #pl.plot(x,u,'r-',x,u_exact(x,T),'go')
     x=np.linspace(0, L, mx+1) #for plotting
-    pl.plot(x,u,'r-')
-    pl.xlabel('x')
-    pl.ylabel('u(x,0.5)')
-    pl.show
+    t=np.linspace(0, L, mt+1)
+    dx=x[1]-x[0]
+    dt=t[1]-t[0]
+    
+    fig1=pl.figure(figsize=(10,5))
+    ax1=fig1.add_subplot(1,1,1)
+    ax1.plot(x,u)
+    ax1.set_xlabel("x")
+    ax1.set_ylabel("u")
+    #fig2.savefig('parabolic plot.svg')
+    
+    """
+    errorx=get_errorx(kappa, L,T,u_I, mx,100000,zero_bound, crank_nich, neumann=0)
+    xlist=np.array([2**a for a in range(8)])
+    xlist=xlist*mx
+    """
+    
+    steps=8
+    error=get_errors(kappa, L,T,u_I, mx,mt,zero_bound, crank_nich, steps, neumann=0)
+    error=np.log(error)
+    dh=np.array([2**a for a in range(steps)])
+    dh=dh*dx*dx/dt
+    dh=np.log(dh)
+    fig2=pl.figure(figsize=(10,5))
+    ax2=fig2.add_subplot(1,1,1)
+    ax2.plot(dh,error)
+    ax2.set_xlabel("logx")
+    ax2.set_ylabel("log Error")
+    #fig2.savefig('Phase Plot 2.svg')
+    z = np.polyfit(dh, error, 1)
+    p = np.poly1d(z)
+    ax2.plot(dh,p(dh))
+    # the line equation:
+    print("y={}x+{}".format(z[0],z[1]))
+    
+    
+    
