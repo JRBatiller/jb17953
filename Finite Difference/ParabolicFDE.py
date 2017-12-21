@@ -101,18 +101,16 @@ def fde_parabolic(K,L,T,xinit,mx, mt, bdry,method=f_euler, neumann=0, h_source=h
     print("lambda=",ld)
     u0=xinit(xs) #initialize u0
     A,B=method(ld,mx+1) #this gives you the left and right matrixes
-    A=modify_evo(A) 
-    B=modify_evo(B) 
     if neumann:
         u=neumann_solve(u0,xs,ts,ld,A,B,bdry, h_source)
     else:
-        A=truncate_matrix(A) #remove outermost elements of matrix
-        B=truncate_matrix(B) #modification of matrixes don't matter
-        #this might slow things down but at least it reduces if statements
         u=dirichlet_solve(u0,xs,ts,ld,A,B,bdry, h_source)
     return u
 
 def dirichlet_solve(u0, xs, time, ld, lmatrix, rmatrix, bdry, F):
+    lmatrix=truncate_matrix(lmatrix) #remove outermost elements of matrix
+    rmatrix=truncate_matrix(rmatrix) #modification of matrixes don't matter
+    #this might slow things down but at least it reduces if statements
     dt=time[1]-time[0]
     u=np.zeros(len(u0))
     addends=np.zeros(lmatrix.shape[0])
@@ -137,6 +135,8 @@ def dirichlet_solve(u0, xs, time, ld, lmatrix, rmatrix, bdry, F):
     return u
 
 def neumann_solve(u0, xs, time, ld, lmatrix, rmatrix, nbdry, F):
+    lmatrix=modify_evo(lmatrix) 
+    rmatrix=modify_evo(rmatrix) 
     dt=time[1]-time[0]
     dx=xs[1]-xs[0] 
     u=np.zeros(len(u0))
@@ -184,20 +184,33 @@ def is_identity(A):
     ans=(A.toarray()==B) #can't get not equals to work properly
     return ans.all()
 
-def get_errorx(K,L,T,xinit,mx,mt,bdry, method,neumann=0,F=heat_source):
+def abs_errorx(K,L,T,xinit,mx,mt,bdry, method, steps, neumann=0,F=heat_source, exact=u_exact):
     elist=[]
-    u1=fde_parabolic(K, L,T,xinit, mx,mt,bdry, method, neumann, F)
-    for a in range(8):
-        u2=fde_parabolic(K, L,T,xinit, 2*mx,mt,bdry, method, neumann, F)
-        u2half=u2[::2]
-        error=abs(u1-u2half)**2
+    for a in range(steps):
+        u1=fde_parabolic(K, L,T,xinit, mx,mt,bdry, method, neumann, F)
+        soln=exact(mx,T)
+        error=abs(u1-soln)**2
         error=np.sqrt(sum(error))
-        elist.append(error)
-        u1=u2
+        if np.isfinite(error):
+            elist.append(error)
+        else:
+            elist.append(0)
         mx=mx*2
     return elist
 
-
+def abs_errort(K,L,T,xinit,mx,mt,bdry, method, steps, neumann=0,F=heat_source, exact=u_exact):
+    elist=[]
+    for a in range(steps):
+        u1=fde_parabolic(K, L,T,xinit, mx,mt,bdry, method, neumann, F)
+        soln=exact(mx,T)
+        error=abs(u1-soln)**2
+        error=np.sqrt(sum(error))
+        if np.isfinite(error):
+            elist.append(error)
+        else:
+            elist.append(0)
+        mt=mt*2
+    return elist
 
 def get_errors(K,L,T,xinit,mx,mt,bdry, method,steps, neumann=0,F=heat_source):
     elist=[]
@@ -249,6 +262,7 @@ if __name__ == "__main__":
     
     steps=8
     error=get_errors(kappa, L,T,u_I, mx,mt,zero_bound, crank_nich, steps, neumann=0)
+    #error=abs_errorx(kappa, L,T,u_I, mx,mt,zero_bound, crank_nich, steps, neumann=0)
     error=np.log(error)
     dh=np.array([2**a for a in range(steps)])
     dh=dh*dx*dx/dt
